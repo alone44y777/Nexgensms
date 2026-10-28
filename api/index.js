@@ -1,34 +1,34 @@
 // File: api/index.js
 module.exports = async (req, res) => {
   try {
-    // 1. URL parameters capture kar ke target URL banana
     const queryString = new URLSearchParams(req.query).toString();
     const targetUrl = queryString 
       ? `https://sms-bmb-api.fakcloud.tech/?${queryString}` 
       : "https://sms-bmb-api.fakcloud.tech/";
     
-    // 2. Original API ko background mein call karna
     const fetchResponse = await fetch(targetUrl);
     const rawData = await fetchResponse.text();
     
     let usefulData = rawData;
     
-    // 3. Data filter karna (Sirf Status aur Message nikalna)
     try {
-        const jsonData = JSON.parse(rawData);
-        const filteredResponse = {};
-        if (jsonData.status) filteredResponse.Status = jsonData.status;
-        if (jsonData.message || jsonData.msg) filteredResponse.Message = jsonData.message || jsonData.msg;
-        if (jsonData.count || jsonData.amount) filteredResponse.Sent = jsonData.count || jsonData.amount;
+        let jsonData = JSON.parse(rawData);
         
-        usefulData = Object.keys(filteredResponse).length > 0 
-          ? JSON.stringify(filteredResponse, null, 2) 
-          : JSON.stringify(jsonData, null, 2);
+        // 1. Tumhari custom branding set ki
+        jsonData.Branding = "𐏓꯭Ξ⤹³𓆩˹𝐍𝐸𝑋𝐺𝐸𝑁-𝑇𝐸𝐶𝐻-𝑍𝑂𝑁𝐸꧊𓆪";
+        
+        // 2. Owner change kiya aur Website/WhatsApp remove kar diya
+        if (jsonData.Credits) {
+            jsonData.Credits.Owner = "NexGen Tech Zone";
+            delete jsonData.Credits.Website;
+            delete jsonData.Credits.WhatsApp;
+        }
+        
+        usefulData = JSON.stringify(jsonData, null, 2);
     } catch (e) {
         usefulData = rawData;
     }
 
-    // 4. NexGen Tech ka custom browser response
     res.setHeader('Content-Type', 'text/html');
     res.status(200).send(`
       <html>
@@ -59,4 +59,3 @@ module.exports = async (req, res) => {
     `);
   }
 };
-      
